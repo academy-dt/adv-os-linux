@@ -1,8 +1,8 @@
 KDIR ?= ..
 
-NAME = ptree
+NAME = mapspages
 EXTRA_CFLAGS = -Wall -g
-obj-m        = $(NAME).o
+obj-m = $(NAME).o
 
 kbuild:
 	make -C $(KDIR) M=$(PWD) modules
