@@ -20,6 +20,8 @@ int mapspages(unsigned long start, unsigned long end, char *buf, size_t size)
         return -1;
     }
 
+    LOG("%s", buf);
+
     return 0;
 }
 
@@ -34,8 +36,14 @@ int main(int argc, char **argv)
         return 2;
     }
 
-    start = atol(argv[1]);
-    end   = atol(argv[2]);
+    if (sscanf(argv[1], "0x%lx", &start) != 1) {
+        start = atol(argv[1]);
+    }
+
+    if (sscanf(argv[2], "0x%lx", &end) != 1) {
+        end = atol(argv[2]);
+    }
+
     size  = atol(argv[3]);
 
     buf = malloc(size);

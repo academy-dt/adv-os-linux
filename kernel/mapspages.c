@@ -101,12 +101,13 @@ SYSCALL_DEFINE4(mapspages, unsigned long, start, unsigned long, end, char __user
     }
 
     rv = fp(start, end, kbuf, size);
+
+    put_mapspages();
+
     if (rv) {
         // logged from the inside
         goto out;
     }
-
-    put_mapspages();
 
     if (copy_to_user(buf, kbuf, size)) {
         pr_err("copy_to_user failed");
