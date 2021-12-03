@@ -164,12 +164,14 @@ int get_mapspages(unsigned long start, unsigned long end, char *buf, size_t size
 {
     int rv;
 	struct mm_struct *mm;
+    unsigned long aligned_end;
 
-    pr_info("getting mapspages: %lx - %lx -> %p [%zu]", start, end, buf, size);
+    aligned_end = PAGE_ALIGN(end);
+    pr_info("getting mapspages: %lx - %lx (%lx) -> %p [%zu]", start, end, aligned_end, buf, size);
 
 	mm = current->mm;
     down_read(&mm->mmap_sem);
-    rv = enum_mapspages(mm, start, end, buf, size);
+    rv = enum_mapspages(mm, start, aligned_end, buf, size);
     up_read(&mm->mmap_sem);
 
     return rv;
