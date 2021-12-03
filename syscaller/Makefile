@@ -1,13 +1,11 @@
 CXX = gcc
-SRC = $(wildcard *.c)
-OBJ = $(SRC:.c=.o)
 
 CPPFLAGS = -Wall -Werror
 LDFLAGS =
 
-syscaller: $(OBJ)
+test.out: test.o shared.o
 	$(CC) $(CPPFLAGS) -o $@ $^ $(LDFLAGS)
 
 .PHONY: clean
 clean:
-	rm -f $(OBJ) app
+	rm -f *.out *.o
