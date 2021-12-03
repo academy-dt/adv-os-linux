@@ -14,6 +14,8 @@ int mapspages(unsigned long start, unsigned long end, char *buf, size_t size)
 {
     LOG("syscall(%ld, %lu, %lu, %p, %zu)", SYS_MAPSPAGES,
         start, end, buf, size);
+    LOG("");
+
     int err = syscall(SYS_MAPSPAGES, start, end, buf, size);
     if (err) {
         LOG("Error: %s (%d)", strerror(-err), -err);
@@ -53,6 +55,10 @@ int main(int argc, char **argv)
     }
 
     int rv = mapspages(start, end, buf, size);
+
+    LOG("Press return to terminate...");
+    getchar();
+
     free(buf);
     return rv;
 }
