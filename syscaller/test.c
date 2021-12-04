@@ -11,31 +11,6 @@
 
 #include "shared.h"
 
-void* get_stack_start()
-{
-    FILE* fp = fopen("/proc/self/stat", "r");
-    if (!fp) {
-        LOG("Open stat file failed");
-        return NULL;
-    }
-
-    int bytes = 0;
-    char format[256];
-    for (unsigned i = 0; i < 27; ++i) {
-        bytes += sprintf(&format[bytes], "%%*s ");
-    }
-    sprintf(&format[bytes], "%%lu");
-
-    unsigned long stack_bottom;
-    int tokens = fscanf(fp, format, &stack_bottom);
-    if (tokens != 1) {
-        LOG("Scan stat file failed");
-        return NULL;
-    }
-
-    return (void *)stack_bottom;
-}
-
 void* get_stack_bottom()
 {
     FILE* fp = fopen("/proc/self/maps", "r");
@@ -159,9 +134,23 @@ int test6()
     return map_rw(2000, 0, 0);
 }
 
-int thread_main(void *args)
+int main_child(void *args)
 {
     sleep(3000);
+    return 0;
+}
+
+int run_children(void *stack, unsigned count)
+{
+    LOG("Running %u children with stack @ %p", count, stack);
+    for (unsigned i = 0; i < count; ++i) {
+        int rv = clone(main_child, stack, 0, NULL);
+        if (rv == -1) {
+            LOG("Clone thread failed: %s (%d)", strerror(errno), errno);
+            return -1;
+        }
+    }
+
     return 0;
 }
 
@@ -172,12 +161,6 @@ int test7()
     void* stack_bottom = get_stack_bottom();
     if (stack_bottom == 0) {
         LOG("Get stack bottom failed");
-        return -1;
-    }
-
-    void* stack_start = get_stack_start();
-    if (stack_start == 0) {
-        LOG("Get stack start failed");
         return -1;
     }
 
@@ -197,21 +180,65 @@ int test7()
     stack = alloca(size);
     (void)stack; // Compiler complains it's unused
 
-    for (unsigned i = 0; i < 8; ++i) {
-        int rv = clone(thread_main, (void *)stack_top, 0, NULL);
-        if (rv == -1) {
-            LOG("Clone thread failed: %s (%d)", strerror(errno), errno);
-            return -1;
-        }
+    if (run_children(stack_top, 8) != 0) {
+        return -1;
     }
 
     return print_maps((unsigned long)stack_top, (unsigned long)stack_bottom);
 }
 
+int touchy_child(unsigned index, char *map, size_t page_size,
+                 const char *random, size_t random_len)
+{
+    for (unsigned i = 0; i < random_len; ++i) {
+        if (random[i] == '.') {
+            continue;
+        }
+
+        if (random[i] == 'X') {
+            char c = map[i * page_size];
+            (void)c;
+            continue;
+        }
+
+        if (random[i] - '1' >= index) {
+            char c = map[i * page_size];
+            (void)c;
+            continue;
+        }
+    }
+
+    sleep(3000);
+    return 0;
+}
+
 int test8()
 {
     LOG_FUNC();
-    return 0;
+
+    static const char *random = ".123456789X";
+    size_t nr = strlen(random);
+
+    size_t page_size = getpagesize();
+    size_t len = nr * page_size;
+    char *map = mmap(NULL, len, PROT_READ | PROT_WRITE,
+                     MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+    if (map == MAP_FAILED) {
+        LOG("Allocate buffer failed");
+        return -1;
+    }
+    LOG("Allocated buffer @ %p", map);
+
+    for (unsigned i = 0; i < 9; ++i) {
+        int pid = fork();
+        if (pid == 0) {
+            touchy_child(i, map, page_size, random, nr);
+        }
+    }
+
+    int rv = print_map(map, len);
+    munmap(map, len);
+    return rv;
 }
 
 int test9()
