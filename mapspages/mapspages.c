@@ -13,7 +13,7 @@
 #include <linux/mapspages.h>
 
 MODULE_LICENSE("GPL");
-MODULE_AUTHOR("Daniel Trugman & Chen Glayher");
+MODULE_AUTHOR("Daniel Trugman & Chen Gleichger");
 MODULE_DESCRIPTION("HW2");
 
 struct walk_data {
