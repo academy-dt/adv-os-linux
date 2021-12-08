@@ -98,6 +98,16 @@ int map_rw(size_t nr, unsigned read_mask, unsigned write_mask)
     return rv;
 }
 
+const char* gen_random() {
+    static const char alphanum[] = ".12";
+    char str[10];
+    for (int i = 0; i < 10; ++i) {
+        str[i] = alphanum[rand() % (sizeof(alphanum) - 1)];
+    }
+
+    str[len] = 0;
+}
+
 int test1()
 {
     LOG_FUNC();
@@ -212,6 +222,41 @@ int touchy_child(unsigned index, char *map, size_t page_size,
     return 0;
 }
 
+int test8() 
+{	
+    char *str = gen_random();
+    //str = 1.2..2.1.1
+
+    //replace all . with 0
+    while ((found = substr_char(str, ".", '0'))) {
+        continue;
+    }
+    //str = 1020020101
+
+    char read[10], write[10];
+    int readmask, writemask;
+
+    strcpy(read, str);
+    strcpy(write, str);
+
+    //convert into binary
+    while ((found = substr_char(read, "2", '0'))) {
+	continue;
+    }
+    //read 1000000101
+
+    while ((found = substr_char(write, "1", '0'))) {
+	continue;
+    }
+    //write 0020020000
+
+    read_mask = (int) strtol(read, NULL, 2);
+    write_mask = (int) strtol(write, NULL, 2);
+
+    return map_rw(10, read_mask, write_mask);
+}
+
+/*
 int test8()
 {
     LOG_FUNC();
@@ -240,7 +285,7 @@ int test8()
     munmap(map, len);
     return rv;
 }
-
+*/
 int test9()
 {
     LOG_FUNC();
