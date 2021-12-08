@@ -98,16 +98,6 @@ int map_rw(size_t nr, unsigned read_mask, unsigned write_mask)
     return rv;
 }
 
-const char* gen_random() {
-    static const char alphanum[] = ".12";
-    char str[10];
-    for (int i = 0; i < 10; ++i) {
-        str[i] = alphanum[rand() % (sizeof(alphanum) - 1)];
-    }
-
-    str[len] = 0;
-}
-
 int test1()
 {
     LOG_FUNC();
@@ -220,6 +210,17 @@ int touchy_child(unsigned index, char *map, size_t page_size,
 
     sleep(3000);
     return 0;
+}
+
+const char* gen_random() 
+{
+    static const char alphanum[] = ".12";
+    char str[10];
+    for (int i = 0; i < 10; ++i) {
+        str[i] = alphanum[rand() % (sizeof(alphanum) - 1)];
+    }
+
+    str[len] = 0;
 }
 
 int test8() 
