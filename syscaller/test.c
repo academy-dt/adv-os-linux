@@ -287,6 +287,7 @@ int test8()
     return rv;
 }
 */
+
 int test9()
 {
     LOG_FUNC();
